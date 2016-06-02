@@ -1,4 +1,4 @@
-module MartyRspec::Util
+module MartyRSpec::Util
 
     # essentially works as documentation & wait
     def by message, level=0
