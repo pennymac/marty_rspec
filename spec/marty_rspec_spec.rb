@@ -5,14 +5,14 @@ describe MartyRspec do
     expect(MartyRspec::VERSION).not_to be nil
   end
 
-  it 'check name' do
+  it 'get the grid name' do
     foo_grid = MartyRspec::NetzkeGrid.netzke_find('foo')
     expect(foo_grid.name).to eq 'foo'
   end
 
-  it 'escape this' do
-  	some_string = "blah\tblah\n"
-  	simple_escape!(some_string)
-  	expect(some_string).to eq "blah\\tblah\\n"
+  it 'escape util function works' do
+    some_string = "blah\tblah\n"
+    simple_escape!(some_string)
+    expect(some_string).to eq "blah\\tblah\\n"
   end
 end

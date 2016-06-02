@@ -1,7 +1,5 @@
 module MartyRspec::Util
 
-    MAX_WAIT_TIME = 5.0
-
     # essentially works as documentation & wait
     def by message, level=0
       wait_for_ready(10)
@@ -104,7 +102,7 @@ module MartyRspec::Util
       res
     end
 
-    def run_js js_str, seconds_to_wait = MAX_WAIT_TIME, sleeptime = 0.1
+    def run_js js_str, seconds_to_wait = 5.0, sleeptime = 0.1
       result = wait_for_element(seconds_to_wait, sleeptime) do
         res = nil
         page.document.synchronize { res = page.execute_script(js_str) }

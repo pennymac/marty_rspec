@@ -2,13 +2,15 @@ require 'capybara/dsl'
 
 module MartyRspec
   module NetzkeGrid
-    def netzke_find(name, grid_type = 'gridpanel')
+    def self.netzke_find(name, grid_type = 'gridpanel')
       NetzkeGridNode.new(name, grid_type)
     end
 
     class NetzkeGridNode
       include Util
       include Capybara::DSL
+
+      attr_reader :name, :grid
 
       def initialize(name, grid_type)
         @name = name
@@ -19,17 +21,9 @@ module MartyRspec
         end
       end
 
-      def name
-        @name
-      end
-
-      def grid_js
-        @grid
-      end
-
       def id
         res = run_js <<-JS
-          var c = #{@grid};
+          var c = #{grid};
           return c.view.id;
         JS
         res
@@ -37,7 +31,7 @@ module MartyRspec
 
       def row_count
         res = run_js <<-JS
-          return #{@grid}.getStore().getTotalCount();
+          return #{grid}.getStore().getTotalCount();
         JS
         res.to_i
       end
@@ -51,14 +45,14 @@ module MartyRspec
 
       def row_modified_count
         res = run_js <<-JS
-          return #{@grid}.getStore().getUpdatedRecords().length;
+          return #{grid}.getStore().getUpdatedRecords().length;
         JS
         res.to_i
       end
 
       def data_desc row
         res = run_js <<-JS
-          var r = #{@grid}.getStore().getAt(#{row.to_i-1});
+          var r = #{grid}.getStore().getAt(#{row.to_i-1});
           return r.data.desc
         JS
         res.gsub(/<.*?>/, '')
@@ -66,7 +60,7 @@ module MartyRspec
 
       def click_col col
         run_js <<-JS
-          #{ext_find(ext_arg('gridcolumn', text: col), @grid)}.click();
+          #{ext_find(ext_arg('gridcolumn', text: col), grid)}.click();
         JS
       end
 
@@ -75,7 +69,7 @@ module MartyRspec
         run_js <<-JS
           var result = [];
           for (var i = #{init}; i < #{init.to_i + cnt.to_i}; i++) {
-            #{ext_cell_val('i', col, @grid)}
+            #{ext_cell_val('i', col, grid)}
             if(value instanceof Date){
               result.push(value.toISOString().substring(0,value.toISOString().indexOf('T')));
             } else {
@@ -88,14 +82,14 @@ module MartyRspec
 
       def cell_value(row, col)
         run_js <<-JS
-          #{ext_cell_val(row.to_i - 1, col, @grid)}
+          #{ext_cell_val(row.to_i - 1, col, grid)}
           return value;
         JS
       end
 
       def select_row(row)
         resid = run_js(<<-JS, 10.0)
-          #{ext_var(@grid, 'grid')}
+          #{ext_var(grid, 'grid')}
           grid.getSelectionModel().select(#{row.to_i-1});
           return grid.getView().getNode(#{row.to_i-1}).id;
         JS
@@ -109,7 +103,7 @@ module MartyRspec
         end.join
 
         run_js <<-JS
-          #{ext_var(ext_row(row.to_i - 1, @grid), 'r')}
+          #{ext_var(ext_row(row.to_i - 1, grid), 'r')}
           #{js_set_fields}
         JS
       end
@@ -130,7 +124,7 @@ module MartyRspec
         end.join
 
         res = run_js <<-JS
-          #{ext_var(@grid, 'grid')}
+          #{ext_var(grid, 'grid')}
           #{ext_var(ext_row(row.to_i - 1, 'grid'), 'r')}
           var obj = {};
           #{js_get_fields}
@@ -141,7 +135,7 @@ module MartyRspec
 
       def sorted_by? col, direction = 'asc'
         run_js <<-JS
-          #{ext_var(@grid, 'grid')}
+          #{ext_var(grid, 'grid')}
           #{ext_var(ext_col(col, 'grid'), 'col')}
           var colValues = [];
 
@@ -157,12 +151,12 @@ module MartyRspec
 
       def grid_combobox_values(row, field)
         run_js <<-JS
-          #{start_edit_grid_combobox(row, field, @grid)}
+          #{start_edit_grid_combobox(row, field, grid)}
         JS
 
         # hacky: delay for combobox to render, assumes combobox is not empty
         run_js <<-JS
-          #{ext_var(@grid, 'grid')}
+          #{ext_var(grid, 'grid')}
           #{ext_var(ext_netzkecombo(field), 'combo')}
           var r = [];
           #{ext_var(ext_celleditor, 'editor')}
@@ -182,11 +176,11 @@ module MartyRspec
 
       def get_grid_combobox_val(index, row, field)
         run_js <<-JS
-          #{start_edit_grid_combobox(row, field, @grid)}
+          #{start_edit_grid_combobox(row, field, grid)}
         JS
 
         run_js <<-JS
-          #{ext_var(@grid, 'grid')}
+          #{ext_var(grid, 'grid')}
           #{ext_var(ext_netzkecombo(field), 'combo')}
           #{ext_var(ext_celleditor, 'editor')}
           var val = combo.getStore().getAt(#{index}).get('text');
@@ -197,7 +191,7 @@ module MartyRspec
 
       def start_edit_grid_combobox(row, field)
         <<-JS
-          #{ext_var(@grid, 'grid')}
+          #{ext_var(grid, 'grid')}
           #{ext_var(ext_netzkecombo(field), 'combo')}
           #{ext_var(ext_celleditor, 'editor')}
 
@@ -213,7 +207,7 @@ module MartyRspec
 
       def id_of_edit_field(row, field)
         res = run_js <<-JS
-          #{ext_var(@grid, 'grid')}
+          #{ext_var(grid, 'grid')}
           #{ext_var(ext_celleditor, 'editor')}
 
           editor.startEditByPosition({ row:#{row.to_i-1},
@@ -225,7 +219,7 @@ module MartyRspec
 
       def end_edit(row, field)
         run_js <<-JS
-          #{ext_var(@grid, 'grid')}
+          #{ext_var(grid, 'grid')}
           #{ext_var(ext_celleditor, 'editor')}
           editor.completeEdit();
           return true;
