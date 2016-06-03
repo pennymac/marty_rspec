@@ -1,12 +1,12 @@
 require 'spec_helper'
 
-describe MartyRspec do
+describe MartyRSpec do
   it 'has a version number' do
-    expect(MartyRspec::VERSION).not_to be nil
+    expect(MartyRSpec::VERSION).not_to be nil
   end
 
   it 'get the grid name' do
-    foo_grid = MartyRspec::NetzkeGrid.netzke_find('foo')
+    foo_grid = netzke_find('foo')
     expect(foo_grid.name).to eq 'foo'
   end
 

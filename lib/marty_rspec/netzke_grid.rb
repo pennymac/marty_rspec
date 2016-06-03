@@ -2,7 +2,7 @@ require 'capybara/dsl'
 
 module MartyRSpec
   module NetzkeGrid
-    def self.netzke_find(name, grid_type = 'gridpanel')
+    def netzke_find(name, grid_type = 'gridpanel')
       NetzkeGridNode.new(name, grid_type)
     end
 
