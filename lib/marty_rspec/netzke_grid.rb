@@ -9,6 +9,7 @@ module MartyRSpec
     class NetzkeGridNode
       include Util
       include Capybara::DSL
+      include RSpec::Matchers
 
       attr_reader :name, :grid
 
@@ -112,7 +113,7 @@ module MartyRSpec
         js_get_fields = fields.each_key.map do |k|
           <<-JS
             var col = Ext.ComponentQuery.query('gridcolumn[name=\"#{k}\"]', grid)[0];
-            var value = col.assoc ? r.get('meta').associationValues['#{k}'] :
+            var value = col.assoc ? r.get('association_values')['#{k}'] :
                                     r.get('#{k}');
             if (value instanceof Date) {
               obj['#{k}'] = value.toISOString().substring(0,
@@ -130,7 +131,12 @@ module MartyRSpec
           #{js_get_fields}
           return obj;
         JS
-        wait_for_element { expect(res).to eq fields.stringify_keys }
+
+        # in netzke 1.0, "False" becomes false
+        expected_value = fields.each_with_object({}) do | (k, v), h |
+          h[k.to_s] = v == "False" ? false : v
+        end
+        wait_for_element { expect(res).to eq(expected_value) }
       end
 
       def sorted_by? col, direction = 'asc'
@@ -140,7 +146,7 @@ module MartyRSpec
           var colValues = [];
 
           grid.getStore().each(function(r){
-            var val = col.assoc ? r.get('meta').associationValues['#{col}'] :
+            var val = col.assoc ? r.get('association_values)['#{col}'] :
                                   r.get('#{col}');
             if (val) colValues.#{direction == 'asc' ? 'push' : 'unshift'}(val);
           });
@@ -163,7 +169,11 @@ module MartyRSpec
           var store = combo.getStore();
 
           // force a retry if the store is still loading
-          if (store.loading == true) { throw "store not loaded yet"; }
+          if (store.loading == true) {
+            now = new Date().getTime();
+            while(new Date().getTime() < now + 100) { }
+            return false;
+          }
 
           for(var i = 0; i < store.getCount(); i++) {
             r.push(store.getAt(i).get('text'));

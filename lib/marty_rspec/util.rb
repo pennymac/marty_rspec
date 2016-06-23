@@ -1,4 +1,6 @@
-module MartyRSpec::Util
+module MartyRSpec
+  module Util
+    MAX_WAIT_TIME = 5.0
 
     # essentially works as documentation & wait
     def by message, level=0
@@ -80,7 +82,7 @@ module MartyRSpec::Util
     end
 
     def zoom_out
-      el = find('body')
+      el = find(:body, match: :first)
       el.native.send_keys([:control, '0'])
       el.native.send_keys([:control, '-'])
       el.native.send_keys([:control, '-'])
@@ -102,11 +104,10 @@ module MartyRSpec::Util
       res
     end
 
-    def run_js js_str, seconds_to_wait = 5.0, sleeptime = 0.1
+    def run_js js_str, seconds_to_wait = MAX_WAIT_TIME, sleeptime = 0.1
       result = wait_for_element(seconds_to_wait, sleeptime) do
-        res = nil
-        page.document.synchronize { res = page.execute_script(js_str) }
-        res.nil? ? true : res
+        page.document.synchronize { @res = page.execute_script(js_str) }
+        @res
       end
       result
     end
@@ -222,14 +223,12 @@ module MartyRSpec::Util
     end
 
     def ext_cell_val(row, col, grid, var_str = 'value')
-      # FOR NETZKE 1.0, use this line for columns
-      # r.get('association_values')['#{col}'] :
       <<-JS
       #{ext_var(grid, 'grid')}
       #{ext_var(ext_col(col, 'grid'), 'col')}
       #{ext_var(ext_row(row, 'grid'), 'row')}
       var #{var_str} = col.assoc ?
-        row.get('meta').associationValues['#{col}'] :
+        row.get('association_values')['#{col}'] :
         row.get('#{col}');
     JS
     end
@@ -284,33 +283,9 @@ module MartyRSpec::Util
       wait_for_element { !ajax_loading? }
     end
 
-    # Capybara finders
     def custom_selectors
-      Capybara.add_selector(:gridpanel) do
-        xpath { |name| ".//div[contains(@id, '#{name}')] | " +
-                ".//div[contains(@id, '#{name.camelize(:lower)}')]" }
-      end
-      Capybara.add_selector(:msg) do
-        xpath { "//div[@id='msg-div']" }
-      end
-      Capybara.add_selector(:body) do
-        xpath { ".//div[@data-ref='body']" }
-      end
-      Capybara.add_selector(:input) do
-        xpath { |name| "//input[@name='#{name}']" }
-      end
-      Capybara.add_selector(:status) do
-        xpath { |name| "//div[contains(@id, 'statusbar')]//div[text()='#{name}']" }
-      end
-      Capybara.add_selector(:btn) do
-        xpath { |name| ".//span[text()='#{name}']" }
-      end
-      Capybara.add_selector(:refresh) do
-        xpath { "//img[contains(@class, 'x-tool-refresh')]" }
-      end
-      Capybara.add_selector(:gridcolumn) do
-        xpath { |name| ".//span[contains(@class, 'x-column-header')]" +
-                "//span[text()='#{name}']" }
-      end
+      # DEPRECATED: Selectors are automatically loaded now
+      warn "[DEPRECATED] no longer needed to manually load selectors"
     end
+  end
 end
