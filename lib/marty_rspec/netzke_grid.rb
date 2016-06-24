@@ -109,34 +109,20 @@ module MartyRSpec
         JS
       end
 
-      def validate_row_values row, fields
-        js_get_fields = fields.each_key.map do |k|
-          <<-JS
-            var col = Ext.ComponentQuery.query('gridcolumn[name=\"#{k}\"]', grid)[0];
-            var value = col.assoc ? r.get('association_values')['#{k}'] :
-                                    r.get('#{k}');
-            if (value instanceof Date) {
-              obj['#{k}'] = value.toISOString().substring(0,
-                value.toISOString().indexOf('T'));
-            } else {
-              obj['#{k}'] = value;
-            };
-          JS
-        end.join
-
+      def get_row_vals row
         res = run_js <<-JS
           #{ext_var(grid, 'grid')}
-          #{ext_var(ext_row(row.to_i - 1, 'grid'), 'r')}
-          var obj = {};
-          #{js_get_fields}
-          return obj;
+          return #{ext_row(row.to_i - 1, 'grid')}.data;
         JS
+      end
 
+      def validate_row_values row, fields
+        res = get_row_vals(row)
         # in netzke 1.0, "False" becomes false
-        expected_value = fields.each_with_object({}) do | (k, v), h |
-          h[k.to_s] = v == "False" ? false : v
-        end
-        wait_for_element { expect(res).to eq(expected_value) }
+        # DEPRECATED: use custom matcher :have_netzke_fields, as below
+        warn "[DEPRECATED] use expect(<<GRID OBJECT>>.get_row_vals(#{row}))." +
+             "to netzke_include(#{fields})"
+        wait_for_element { expect(res).to netzke_include(fields) }
       end
 
       def sorted_by? col, direction = 'asc'
@@ -146,7 +132,7 @@ module MartyRSpec
           var colValues = [];
 
           grid.getStore().each(function(r){
-            var val = col.assoc ? r.get('association_values)['#{col}'] :
+            var val = col.assoc ? r.get('association_values')['#{col}'] :
                                   r.get('#{col}');
             if (val) colValues.#{direction == 'asc' ? 'push' : 'unshift'}(val);
           });
