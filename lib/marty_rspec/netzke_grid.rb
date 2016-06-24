@@ -1,4 +1,5 @@
 require 'capybara/dsl'
+require 'rspec/matchers'
 
 module MartyRSpec
   module NetzkeGrid
