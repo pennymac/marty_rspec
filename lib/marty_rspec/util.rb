@@ -2,15 +2,6 @@ module MartyRSpec
   module Util
     MAX_WAIT_TIME = 5.0
 
-    # essentially works as documentation & wait
-    def by message, level=0
-      wait_for_ready(10)
-      pending(message) unless block_given?
-      yield
-    end
-
-    alias and_by by
-
     # navigation helpers
     def ensure_on(path)
       visit(path) unless current_path == path
@@ -61,6 +52,15 @@ module MartyRSpec
       find(:xpath, '//img[contains(@class, "x-tool-close")]', wait: 5).click
     end
 
+    def zoom_out
+      el = find(:body, match: :first)
+      el.native.send_keys([:control, '0'])
+      el.native.send_keys([:control, '-'])
+      el.native.send_keys([:control, '-'])
+      el.native.send_keys([:control, '-'])
+    end
+
+    #####
     def wait_for_ready wait_time = nil
       if wait_time
         find(:status, 'Ready', wait: wait_time)
@@ -81,14 +81,6 @@ module MartyRSpec
     JS
     end
 
-    def zoom_out
-      el = find(:body, match: :first)
-      el.native.send_keys([:control, '0'])
-      el.native.send_keys([:control, '-'])
-      el.native.send_keys([:control, '-'])
-      el.native.send_keys([:control, '-'])
-    end
-
     def wait_for_element(seconds_to_wait = 2.0, sleeptime = 0.1)
       res = nil
       start_time = current_time = Time.now
@@ -102,6 +94,18 @@ module MartyRSpec
         end
       end
       res
+    end
+
+    #####
+    # note that netzke_find doesn't actually find the component (as in Capybara)
+    # instead, it prepares the javascript to be run on the component object
+    def netzke_find(name, c_type = 'gridpanel')
+      case c_type
+      when 'combobox'
+        MartyRSpec::Components::NetzkeCombobox.new(name)
+      else
+        MartyRSpec::Components::NetzkeGrid.new(name, c_type)
+      end
     end
 
     def run_js js_str, seconds_to_wait = MAX_WAIT_TIME, sleeptime = 0.1
@@ -144,9 +148,11 @@ module MartyRSpec
       result.split(' ')[1].to_i
     end
 
+    private
     def simple_escape! text
       text.gsub!(/(\r\n|\n)/, "\\n")
       text.gsub!(/\t/, "\\t")
+      text.gsub!(/"/, '\"')
     end
 
     def paste text, textarea
@@ -157,6 +163,7 @@ module MartyRSpec
       run_js <<-JS
       #{ext_var(ext_find(ext_arg('textarea', name: textarea)), 'area')}
       area.setValue("#{text}");
+      return true;
     JS
     end
 
@@ -167,7 +174,24 @@ module MartyRSpec
       !res[:class].match(/disabled/).nil?
     end
 
-    # Netzke component lookups, arguments for helper methods below
+    # Field edit/Key in Helpers
+    def type_in(type_s, el_id)
+      el = find_by_id("#{el_id}")
+      el.native.clear()
+      type_s.each_char do |key|
+        el.native.send_keys(key)
+      end
+      el.send_keys(:enter)
+    end
+
+    def press_key_in(key, el_id)
+      kd = key.downcase
+      use_key = ['enter', 'return'].include?(kd) ? kd.to_sym : key
+      el = find_by_id("#{el_id}")
+      el.native.send_keys(use_key)
+    end
+
+    # Netzke component lookups, arguments for helper methods 
     # (i.e. component) require JS scripts instead of objects
     def ext_arg(component, c_args = {})
       res = component
@@ -233,25 +257,13 @@ module MartyRSpec
     JS
     end
 
-    # Field edit/Key in Helpers
-    def type_in(type_s, el_id)
-      el = find_by_id("#{el_id}")
-      el.native.clear()
-      type_s.each_char do |key|
-        el.native.send_keys(key)
-      end
-      el.send_keys(:enter)
-    end
+    ##############
+    # DEPRECATED #
+    ##############
 
-    def press_key_in(key, el_id)
-      kd = key.downcase
-      use_key = ['enter', 'return'].include?(kd) ? kd.to_sym : key
-      el = find_by_id("#{el_id}")
-      el.native.send_keys(use_key)
-    end
-
-    # Combobox Helpers
+    # Combobox Helpers, now separate component, like grid
     def select_combobox(values, combo_label)
+      warn "[DEPRECATED] use netzke_find('#{combo_label}', 'combobox').select_values(values)"
       run_js <<-JS
       var values = #{values.split(/,\s*/)};
       #{ext_combo(combo_label)}
@@ -261,11 +273,15 @@ module MartyRSpec
         arr[i] = combo.findRecordByDisplay(values[i]);
       }
       combo.select(arr);
-      if (combo.isExpanded) { combo.onTriggerClick(); }
+      if (combo.isExpanded) {
+        combo.onTriggerClick();
+        return true;
+      };
     JS
     end
 
     def combobox_values(combo_label)
+      warn "[DEPRECATED] use netzke_find('#{combo_label}', 'combobox').get_values"
       run_js <<-JS
       #{ext_combo(combo_label)}
       var values = [];
@@ -276,16 +292,18 @@ module MartyRSpec
     end
 
     def click_combobox combo_label
+      warn "[DEPRECATED] use netzke_find('#{combo_label}', 'combobox').click"
       run_js <<-JS
       #{ext_combo(combo_label)}
       combo.onTriggerClick();
+      return true;
     JS
       wait_for_element { !ajax_loading? }
     end
 
     def custom_selectors
-      # DEPRECATED: Selectors are automatically loaded now
-      warn "[DEPRECATED] no longer needed to manually load selectors"
+      # automatically loaded now
+      warn "[DEPRECATED] automatically loaded"
     end
   end
 end

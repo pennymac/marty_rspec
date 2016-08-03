@@ -1,8 +1,51 @@
-# MartyRspec
+# Marty RSpec
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/marty_rspec`. To experiment with that code, run `bin/console` for an interactive prompt.
+is a set of helper methods for integration/feature testing for the [Marty](https://github.com/arman000/marty) framework. In particular, it primarily maps javascript functions to provide Capybara-like behavior for Netzke/ExtJS components. 
 
-TODO: Delete this and the text above, and describe your gem
+## Usage
+
+On the macro-level, Marty RSpec functionality can be broken up into 6 pieces. 
+
+1. General Utility functions
+
+examples include log_in, press(button)
+
+2. Wait functions
+
+because netzke/extjs requires execute_scripts all over the place, and because this causes intermittent timing failures
+
+3. Netzke Component Utility functions
+  
+  first, call `c = netzke_find(name, component_type)`
+  note that this doesn't actually 'find' the component a la Capybara. Instead, it prepares the javascript to be used for the particular component helper method. So, in order for any javascript to run, you would need to call (on a grid), for example, `c.row_count`
+
+  1. component_type = 'gridpanel' 
+
+    this is the default
+
+  2. component_type = 'combobox'
+
+4. Custom Capybara selectors
+
+for using Capybara find on commonly used netzke/extjs DOM items
+
+5. Custom RSpec Matchers
+
+6. RSpec-by formatter 
+
+  this is actually an external gem that provides verbose RSpec formatter with benchmarking capabilities. You can wrap bits of longer feature tests in a block. RSpec will print the messages out with how many seconds each block took to complete. 
+
+  ```
+  # the beginning of your awesome test
+  by 'your output message here' do
+    # some test stuff here
+  end
+
+  and_by 'your next step' do
+    # some other test stuff here
+  end
+  # the rest of your awesome test
+  ```
 
 ## Installation
 
@@ -14,25 +57,15 @@ gem 'marty_rspec'
 
 And then execute:
 
-    $ bundle
+    $ bundle install
 
 Or install it yourself as:
 
     $ gem install marty_rspec
 
-## Usage
-
-TODO: Write usage instructions here
-
-## Development
-
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
-
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
-
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/marty_rspec.
+Bug reports and pull requests are welcome on GitHub at https://github.com/sleepn247/marty_rspec.
 
 
 ## License

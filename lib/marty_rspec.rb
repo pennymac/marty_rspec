@@ -1,5 +1,7 @@
 require 'marty_rspec/version'
 require 'marty_rspec/util'
-require 'marty_rspec/netzke_grid'
+require 'marty_rspec/components/netzke_grid'
+require 'marty_rspec/components/netzke_combobox'
 require 'marty_rspec/custom_matchers'
 require 'marty_rspec/custom_selectors'
+require 'rspec/by'

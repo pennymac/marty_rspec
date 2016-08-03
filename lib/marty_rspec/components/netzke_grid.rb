@@ -2,24 +2,21 @@ require 'capybara/dsl'
 require 'rspec/matchers'
 
 module MartyRSpec
-  module NetzkeGrid
-    def netzke_find(name, grid_type = 'gridpanel')
-      NetzkeGridNode.new(name, grid_type)
-    end
-
-    class NetzkeGridNode
+  module Components
+    class NetzkeGrid
       include Util
       include Capybara::DSL
       include RSpec::Matchers
 
       attr_reader :name, :grid
 
-      def initialize(name, grid_type)
+      def initialize(name, c_type)
+        # for now, also allows treepanel
         @name = name
         if /^\d+$/.match(name)
-          @grid = ext_find(grid_type, nil, name)
+          @grid = ext_find(c_type, nil, name)
         else
-          @grid = ext_find(ext_arg(grid_type, name: name))
+          @grid = ext_find(ext_arg(c_type, name: name))
         end
       end
 
@@ -38,12 +35,7 @@ module MartyRSpec
         res.to_i
       end
 
-      def row_total
-        res = run_js <<-JS
-          return #{grid}.getStore().getTotalCount();
-        JS
-        res.to_i
-      end
+      alias :row_total :row_count
 
       def row_modified_count
         res = run_js <<-JS
@@ -66,8 +58,8 @@ module MartyRSpec
         JS
       end
 
-      def col_values(col, cnt, init=0)
-        #does not validate the # of rows
+      def col_values(col, cnt=row_count, init=0)
+        # NOTE: does not validate the # of rows
         run_js <<-JS
           var result = [];
           for (var i = #{init}; i < #{init.to_i + cnt.to_i}; i++) {
