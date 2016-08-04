@@ -8,11 +8,11 @@ On the macro-level, Marty RSpec functionality can be broken up into 6 pieces.
 
 1. General Utility functions
 
-examples include log_in, press(button)
+  examples include log_in, press(button)
 
 2. Wait functions
 
-because netzke/extjs requires execute_scripts all over the place, and because this causes intermittent timing failures
+  because netzke/extjs requires execute_scripts all over the place, and because this causes intermittent timing failures
 
 3. Netzke Component Utility functions
   
@@ -27,7 +27,7 @@ because netzke/extjs requires execute_scripts all over the place, and because th
 
 4. Custom Capybara selectors
 
-for using Capybara find on commonly used netzke/extjs DOM items
+  for using Capybara find on commonly used netzke/extjs DOM items
 
 5. Custom RSpec Matchers
 
@@ -35,7 +35,7 @@ for using Capybara find on commonly used netzke/extjs DOM items
 
   this is actually an external gem that provides verbose RSpec formatter with benchmarking capabilities. You can wrap bits of longer feature tests in a block. RSpec will print the messages out with how many seconds each block took to complete. 
 
-  ```
+  ```ruby
   # the beginning of your awesome test
   by 'your output message here' do
     # some test stuff here
@@ -62,6 +62,19 @@ And then execute:
 Or install it yourself as:
 
     $ gem install marty_rspec
+
+Add the following to your spec_helper.rb (you may want to scope to js tests only):
+
+```ruby
+require 'marty_rspec'
+
+# ...
+
+RSpec.configure do |config|
+  config.include MartyRSpec::Util #, js:true
+  # ...
+end
+```
 
 ## Contributing
 
