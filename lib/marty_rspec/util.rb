@@ -149,20 +149,20 @@ module MartyRSpec
     end
 
     private
-    def simple_escape! text
-      text.gsub!(/(\r\n|\n)/, "\\n")
-      text.gsub!(/\t/, "\\t")
-      text.gsub!(/"/, '\"')
+    def simple_escape text
+      text.gsub(/(\r\n|\n)/, "\\n")
+        .gsub(/\t/, "\\t")
+        .gsub(/"/, '\"')
     end
 
     def paste text, textarea
       # bit hacky: textarea doesn't like receiving tabs and newlines via fill_in
-      simple_escape!(text)
+      escaped = simple_escape(text)
 
       find(:xpath, ".//textarea[@name='#{textarea}']")
       run_js <<-JS
       #{ext_var(ext_find(ext_arg('textarea', name: textarea)), 'area')}
-      area.setValue("#{text}");
+      area.setValue("#{escaped}");
       return true;
     JS
     end
