@@ -53,9 +53,12 @@ module MartyRSpec
       end
 
       def click_col col
-        run_js <<-JS
-          #{ext_find(ext_arg('gridcolumn', text: col), grid)}.click();
+        el = run_js <<-JS
+          #{ext_var(grid, 'grid')}
+          return #{ext_find(ext_arg('gridcolumn', text: col), 'grid')}.id
         JS
+
+        find("#" + el).click
       end
 
       def col_values(col, cnt=row_count, init=0)
