@@ -19,5 +19,5 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_development_dependency "capybara"
-  spec.add_development_dependency "rspec-by"
+  spec.add_runtime_dependency "rspec-by"
 end
