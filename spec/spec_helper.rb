@@ -4,4 +4,3 @@ require 'capybara'
 require 'marty_rspec'
 
 include MartyRSpec::Util
-include MartyRSpec::NetzkeGrid

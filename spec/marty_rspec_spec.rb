@@ -12,7 +12,6 @@ describe MartyRSpec do
 
   it 'escape util function works' do
     some_string = "blah\tblah\n"
-    simple_escape!(some_string)
-    expect(some_string).to eq "blah\\tblah\\n"
+    expect(simple_escape(some_string)).to eq "blah\\tblah\\n"
   end
 end

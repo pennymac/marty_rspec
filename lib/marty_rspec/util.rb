@@ -143,13 +143,6 @@ module MartyRSpec
     JS
     end
 
-find(:xpath, ".//textarea[@name='import_data']")
-    res = run_js <<-JS
-var field = Ext.ComponentQuery.query("textarea[name='import_data'")[0];
-return field.id;
-JS
-
-
     def get_total_pages
       # will get deprecated by Netzke 1.0
       result = find(:xpath, ".//div[contains(@id, 'tbtext-')]",
