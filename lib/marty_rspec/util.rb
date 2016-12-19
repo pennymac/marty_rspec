@@ -27,11 +27,13 @@ module MartyRSpec
       press("Sign out")
     end
 
-    def press button_name, index_of = 0
+    def press button_name, args = {}
+      index_of = args[:index_of] || 0
+      strict = args[:strict] || false
       wait_for_element do
         begin
           cmp = first("a[data-qtip='#{button_name}']")
-          cmp ||= first(:xpath, ".//a", text: "#{button_name}")
+          cmp ||= first(:xpath, ".//a", text: "#{button_name}") unless strict
           cmp ||= find(:btn, button_name, match: :first)
           cmp.click
           true
@@ -141,6 +143,13 @@ module MartyRSpec
     JS
     end
 
+find(:xpath, ".//textarea[@name='import_data']")
+    res = run_js <<-JS
+var field = Ext.ComponentQuery.query("textarea[name='import_data'")[0];
+return field.id;
+JS
+
+
     def get_total_pages
       # will get deprecated by Netzke 1.0
       result = find(:xpath, ".//div[contains(@id, 'tbtext-')]",
@@ -175,23 +184,24 @@ module MartyRSpec
     end
 
     # Field edit/Key in Helpers
-    def type_in(type_s, el_id)
-      el = find_by_id("#{el_id}")
+    def type_in(type_s, el, args = {})
+      extra_keys = args[:extra_keys] || [:enter]
+      el = find_by_id("#{el}") if el.is_a? String
       el.native.clear()
       type_s.each_char do |key|
         el.native.send_keys(key)
       end
-      el.send_keys(:enter)
+      el.send_keys(extra_keys)
     end
 
-    def press_key_in(key, el_id)
+    def press_key_in(key, el)
       kd = key.downcase
       use_key = ['enter', 'return'].include?(kd) ? kd.to_sym : key
-      el = find_by_id("#{el_id}")
+      el = find_by_id("#{el}") if el.is_a? String
       el.native.send_keys(use_key)
     end
 
-    # Netzke component lookups, arguments for helper methods 
+    # Netzke component lookups, arguments for helper methods
     # (i.e. component) require JS scripts instead of objects
     def ext_arg(component, c_args = {})
       res = component
