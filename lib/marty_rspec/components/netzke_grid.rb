@@ -87,10 +87,15 @@ module MartyRSpec
       def select_row(row)
         resid = run_js(<<-JS, 10.0)
           #{ext_var(grid, 'grid')}
-          grid.getSelectionModel().select(#{row.to_i-1});
+          if (grid.getSelectionModel().type == 'spreadsheet') {
+            grid.getSelectionModel().selectRows(#{row.to_i-1});
+          } else {
+            grid.getSelectionModel().select(#{row.to_i-1});
+          }
           return grid.getView().getNode(#{row.to_i-1}).id;
         JS
         el = find_by_id(resid)
+        el.click
         return el
       end
 
