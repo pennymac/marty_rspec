@@ -44,6 +44,10 @@ module MartyRSpec
       end
     end
 
+    def click_checkbox field_label
+      find_by_id(ext_checkbox_id(field_label)).click
+    end
+
     def popup message = ''
       wait_for_ready
       yield if block_given?
@@ -122,6 +126,13 @@ module MartyRSpec
     def show_submenu text
       run_js <<-JS
       Ext.ComponentQuery.query('menuitem[text="#{text}"] menu')[0].show()
+    JS
+    end
+
+    def ext_checkbox_id field_label
+      c_str = ext_arg('checkbox', fieldLabel: "\"#{field_label}\"")
+      run_js <<-JS
+      return #{ext_find(c_str)}.id;
     JS
     end
 
